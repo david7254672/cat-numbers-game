@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cat Kingdom Numbers 🐱</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #1a0533;
+    --bg2: #2d1b4e;
+    --bg3: #3d1f6e;
+    --pink: #ff6eb4;
+    --purple: #c084fc;
+    --gold: #fbbf24;
+    --mint: #6ee7b7;
+    --white: #fff8ff;
+    --pad-bg: rgba(255,255,255,0.08);
+    --pad-border: rgba(255,110,180,0.3);
+    --pad-shadow: 0 4px 15px rgba(255,110,180,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Baloo 2', cursive;
+    background: radial-gradient(ellipse at 20% 20%, #2d1b4e 0%, #1a0533 40%, #0d0220 100%);
+    min-height: 100vh;
+    color: var(--white);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Stars background */
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .star {
+    position: absolute; border-radius: 50%;
+    background: white; animation: twinkle var(--d, 3s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes twinkle { 0%,100%{opacity:0.2;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+
+  /* Paw prints floating */
+  .paw-float {
+    position: fixed; font-size: 1.5rem; pointer-events: none; z-index: 0;
+    animation: floatUp var(--fd, 8s) linear infinite;
+    animation-delay: var(--fdelay, 0s); opacity: 0.15;
+  }
+  @keyframes floatUp { 0%{transform:translateY(110vh) rotate(0deg);opacity:0} 10%{opacity:0.15} 90%{opacity:0.15} 100%{transform:translateY(-10vh) rotate(360deg);opacity:0} }
+
+  /* Layout */
+  #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,110,180,0.2);
+  }
+  .header-title { font-size: 1.3rem; font-weight: 800; color: var(--pink); display:flex; align-items:center; gap:6px; }
+  .stars-count {
+    display: flex; align-items: center; gap: 4px; background: rgba(251,191,36,0.15);
+    border: 1px solid rgba(251,191,36,0.4); border-radius: 20px;
+    padding: 4px 12px; font-weight: 800; color: var(--gold); font-size: 1rem;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50%; width: 36px; height: 36px; font-size: 1.1rem;
+    cursor: pointer; color: white; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: rgba(255,110,180,0.3); }
+
+  /* Screens */
+  .screen { display: none; flex-direction: column; align-items: center; padding: 20px 16px; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* Home screen */
+  .home-mascot { font-size: 5rem; animation: bounce 2s ease-in-out infinite; margin: 10px 0; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .home-title { font-size: 2rem; font-weight: 800; text-align: center; line-height: 1.2; }
+  .home-title span { color: var(--pink); }
+  .home-sub { color: var(--purple); font-size: 1rem; margin: 6px 0 20px; }
+
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 380px; }
+  .mode-btn {
+    background: rgba(255,255,255,0.07); border: 2px solid rgba(255,110,180,0.3);
+    border-radius: 20px; padding: 16px 10px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: all 0.25s; font-family: 'Baloo 2', cursive; color: var(--white);
+    position: relative; overflow: hidden;
+  }
+  .mode-btn::before {
+    content: ''; position: absolute; inset: 0; border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,110,180,0.15), rgba(192,132,252,0.15));
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .mode-btn:hover::before, .mode-btn:active::before { opacity: 1; }
+  .mode-btn:active { transform: scale(0.95); }
+  .mode-btn .icon { font-size: 2.2rem; }
+  .mode-btn .label { font-size: 0.85rem; font-weight: 800; text-align: center; line-height: 1.2; color: var(--white); }
+  .mode-btn .sublabel { font-size: 0.7rem; color: var(--purple); text-align: center; }
+
+  /* Game area */
+  .game-area { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+  .question-card {
+    width: 100%; background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(192,132,252,0.3); border-radius: 24px;
+    padding: 20px 16px; text-align: center; position: relative;
+    backdrop-filter: blur(10px);
+  }
+  .question-label { font-size: 0.8rem; color: var(--purple); font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+  .question-number { font-size: 3.5rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .question-prompt { font-size: 1.1rem; font-weight: 600; color: var(--pink); margin-top: 6px; }
+
+  .speak-btn {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    border: none; border-radius: 50px; padding: 10px 24px;
+    font-family: 'Baloo 2', cursive; font-size: 1rem; font-weight: 800;
+    color: white; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 15px rgba(255,110,180,0.4); transition: all 0.2s;
+  }
+  .speak-btn:active { transform: scale(0.95); }
+
+  /* Display box */
+  .display-box {
+    background: rgba(0,0,0,0.3); border: 2px solid rgba(192,132,252,0.4);
+    border-radius: 16px; padding: 12px 20px; font-size: 2.2rem; font-weight: 800;
+    color: var(--white); min-width: 160px; text-align: center; letter-spacing: 4px;
+    min-height: 60px; display: flex; align-items: center; justify-content: center;
+  }
+  .display-box.shake { animation: shake 0.4s ease-in-out; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+  /* Keypad */
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 300px; }
+  .key {
+    aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--pad-border);
+    background: var(--pad-bg); font-family: 'Baloo 2', cursive;
+    font-size: 1.6rem; font-weight: 800; color: var(--white); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--pad-shadow); transition: all 0.15s;
+    -webkit-user-select: none; user-select: none;
+  }
+  .key:active, .key.pressed { transform: scale(0.88); background: rgba(255,110,180,0.25); border-color: var(--pink); }
+  .key.key-special { background: rgba(192,132,252,0.15); border-color: rgba(192,132,252,0.4); font-size: 1.2rem; }
+  .key.key-submit { background: linear-gradient(135deg, rgba(110,231,183,0.3), rgba(110,231,183,0.1)); border-color: var(--mint); color: var(--mint); }
+  .key.key-submit:active { background: rgba(110,231,183,0.4); }
+
+  /* Number line */
+  .numline-wrap { width: 100%; overflow-x: auto; padding: 10px 0; -webkit-overflow-scrolling: touch; }
+  .numline {
+    display: flex; align-items: flex-end; gap: 0; min-width: max-content;
+    padding: 0 16px; position: relative;
+  }
+  .numline-track {
+    position: absolute; left: 16px; right: 16px; height: 4px;
+    background: linear-gradient(90deg, var(--pink), var(--purple), var(--gold));
+    border-radius: 2px; bottom: 28px;
+  }
+  .nl-item {
+    display: flex; flex-direction: column; align-items: center; cursor: pointer;
+    position: relative; z-index: 1;
+  }
+  .nl-tick {
+    width: 2px; height: 10px; background: rgba(255,255,255,0.3);
+    margin-bottom: 4px; border-radius: 1px;
+  }
+  .nl-item.major .nl-tick { height: 16px; background: rgba(255,255,255,0.7); width: 3px; }
+  .nl-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 2px; transition: all 0.3s;
+  }
+  .nl-item.major .nl-dot { width: 18px; height: 18px; background: rgba(255,255,255,0.25); }
+  .nl-item.target .nl-dot {
+    background: var(--gold); border-color: var(--gold);
+    box-shadow: 0 0 12px var(--gold); animation: pulse-dot 1s ease-in-out infinite;
+    width: 22px; height: 22px;
+  }
+  @keyframes pulse-dot { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+  .nl-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); margin-top: 2px; white-space: nowrap; }
+  .nl-item.major .nl-label { color: rgba(255,255,255,0.8); font-size: 0.65rem; font-weight: 600; }
+  .nl-item.target .nl-label { color: var(--gold); font-weight: 800; }
+  .nl-cat { font-size: 1.4rem; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); animation: cat-bounce 0.8s ease-in-out infinite; }
+  @keyframes cat-bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-6px)} }
+  .nl-item { width: 22px; }
+
+  /* Bigger/smaller choices */
+  .choice-row { display: flex; gap: 16px; width: 100%; justify-content: center; }
+  .choice-btn {
+    flex: 1; max-width: 140px; padding: 20px 10px; border-radius: 20px;
+    border: 3px solid rgba(255,110,180,0.3); background: rgba(255,255,255,0.06);
+    font-family: 'Baloo 2', cursive; font-size: 2.5rem; font-weight: 800;
+    color: var(--white); cursor: pointer; text-align: center;
+    transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .choice-btn:active { transform: scale(0.93); }
+  .choice-btn.correct { border-color: var(--mint); background: rgba(110,231,183,0.2); animation: correct-flash 0.4s ease; }
+  .choice-btn.wrong { border-color: #f87171; background: rgba(248,113,113,0.15); animation: shake 0.4s ease; }
+  @keyframes correct-flash { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+
+  /* Sequence display */
+  .sequence-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .seq-num {
+    background: rgba(255,255,255,0.1); border: 2px solid rgba(192,132,252,0.3);
+    border-radius: 12px; padding: 8px 14px; font-size: 1.6rem; font-weight: 800; color: var(--gold);
+  }
+  .seq-arrow { color: var(--purple); font-size: 1.4rem; }
+  .seq-blank {
+    background: rgba(255,110,180,0.1); border: 2px dashed var(--pink);
+    border-radius: 12px; padding: 8px 20px; font-size: 1.6rem; font-weight: 800; color: var(--pink);
+    min-width: 70px; text-align: center;
+  }
+
+  /* Missing number fill */
+  .missing-row { display: flex; gap: 8px; align-items: center; justify-content: center; }
+  .miss-num {
+    background: rgba(255,255,255,0.1); border: 2px solid rgba(192,132,252,0.3);
+    border-radius: 12px; padding: 10px 16px; font-size: 2rem; font-weight: 800; color: var(--gold);
+  }
+  .miss-blank {
+    background: rgba(255,110,180,0.1); border: 2px dashed var(--pink);
+    border-radius: 12px; padding: 10px 16px; font-size: 2rem; font-weight: 800; color: var(--pink);
+    min-width: 80px; text-align: center;
+  }
+
+  /* Feedback */
+  .feedback {
+    font-size: 1.1rem; font-weight: 800; text-align: center;
+    padding: 10px 20px; border-radius: 16px; display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.good { color: var(--mint); background: rgba(110,231,183,0.1); border: 1px solid rgba(110,231,183,0.3); }
+  .feedback.bad { color: #fca5a5; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); }
+
+  /* Celebration overlay */
+  #celebration {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(26,5,51,0.85); backdrop-filter: blur(6px);
+  }
+  #celebration.show { display: flex; }
+  .cel-emoji { font-size: 6rem; animation: cel-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  @keyframes cel-pop { 0%{transform:scale(0) rotate(-20deg)} 100%{transform:scale(1) rotate(0deg)} }
+  .cel-text { font-size: 1.8rem; font-weight: 800; color: var(--gold); text-align: center; margin: 10px 20px; }
+  .cel-sub { font-size: 1rem; color: var(--purple); }
+  .confetti-piece {
+    position: fixed; width: 10px; height: 10px; border-radius: 2px;
+    animation: confetti-fall var(--cf-d, 1.5s) ease-in forwards;
+    animation-delay: var(--cf-delay, 0s);
+  }
+  @keyframes confetti-fall {
+    0%{transform:translate(0,0) rotate(0deg);opacity:1}
+    100%{transform:translate(var(--cf-x,20px),100vh) rotate(720deg);opacity:0}
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div id="app">
+  <div class="header">
+    <div id="backBtnWrap" style="width:36px"></div>
+    <div class="header-title">🐱 Cat Kingdom</div>
+    <div class="stars-count">⭐ <span id="starCount">0</span></div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="home-mascot">😸</div>
+    <div class="home-title">Welcome to<br><span>Cat Kingdom!</span></div>
+    <div class="home-sub">Pick a game to play 🐾</div>
+    <div class="mode-grid">
+      <div class="mode-btn" onclick="startMode('hear')">
+        <div class="icon">🔊</div>
+        <div class="label">Hear It,<br>Type It</div>
+        <div class="sublabel">Listen & type</div>
+      </div>
+      <div class="mode-btn" onclick="startMode('find')">
+        <div class="icon">📍</div>
+        <div class="label">Find It on<br>the Line</div>
+        <div class="sublabel">Spot the cat!</div>
+      </div>
+      <div class="mode-btn" onclick="startMode('bigger')">
+        <div class="icon">🏆</div>
+        <div class="label">Bigger or<br>Smaller?</div>
+        <div class="sublabel">Tap the right one</div>
+      </div>
+      <div class="mode-btn" onclick="startMode('next')">
+        <div class="icon">➡️</div>
+        <div class="label">What Comes<br>Next?</div>
+        <div class="sublabel">Finish the pattern</div>
+      </div>
+      <div class="mode-btn" onclick="startMode('missing')" style="grid-column:1/-1;max-width:180px;margin:0 auto">
+        <div class="icon">❓</div>
+        <div class="label">Missing Number</div>
+        <div class="sublabel">Fill the gap</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEAR IT -->
+  <div class="screen" id="screen-hear">
+    <div class="game-area">
+      <div class="question-card">
+        <div class="question-label">🔊 Listen carefully…</div>
+        <div class="question-prompt">What number did the cat say?</div>
+      </div>
+      <button class="speak-btn" onclick="speakCurrent()">🐱 Hear it again!</button>
+      <div class="display-box" id="hear-display">_ _</div>
+      <div class="feedback" id="hear-feedback"></div>
+      <div class="keypad" id="hear-keypad"></div>
+    </div>
+  </div>
+
+  <!-- FIND IT -->
+  <div class="screen" id="screen-find">
+    <div class="game-area">
+      <div class="question-card">
+        <div class="question-label">📍 Find the cat!</div>
+        <div class="question-prompt">Where is the cat sitting?<br>Type that number!</div>
+      </div>
+      <div class="numline-wrap">
+        <div class="numline" id="find-numline">
+          <div class="numline-track"></div>
+        </div>
+      </div>
+      <div class="display-box" id="find-display">_ _</div>
+      <div class="feedback" id="find-feedback"></div>
+      <div class="keypad" id="find-keypad"></div>
+    </div>
+  </div>
+
+  <!-- BIGGER/SMALLER -->
+  <div class="screen" id="screen-bigger">
+    <div class="game-area">
+      <div class="question-card">
+        <div class="question-label" id="bigger-label">🏆 Which is BIGGER?</div>
+        <div class="question-prompt">Tap the right number!</div>
+      </div>
+      <button class="speak-btn" onclick="speakBiggerPrompt()">🐱 Hear it again!</button>
+      <div class="choice-row">
+        <div class="choice-btn" id="choice-a" onclick="checkChoice('a')">
+          <div id="choice-a-num">—</div>
+        </div>
+        <div class="choice-btn" id="choice-b" onclick="checkChoice('b')">
+          <div id="choice-b-num">—</div>
+        </div>
+      </div>
+      <div class="feedback" id="bigger-feedback"></div>
+    </div>
+  </div>
+
+  <!-- WHAT COMES NEXT -->
+  <div class="screen" id="screen-next">
+    <div class="game-area">
+      <div class="question-card">
+        <div class="question-label">➡️ What comes next?</div>
+        <div class="sequence-row" id="next-seq"></div>
+      </div>
+      <button class="speak-btn" onclick="speakSequence()">🐱 Hear it again!</button>
+      <div class="display-box" id="next-display">_ _</div>
+      <div class="feedback" id="next-feedback"></div>
+      <div class="keypad" id="next-keypad"></div>
+    </div>
+  </div>
+
+  <!-- MISSING NUMBER -->
+  <div class="screen" id="screen-missing">
+    <div class="game-area">
+      <div class="question-card">
+        <div class="question-label">❓ Missing number!</div>
+        <div class="question-prompt">What number is hiding?</div>
+        <div class="missing-row" id="missing-row"></div>
+      </div>
+      <button class="speak-btn" onclick="speakMissing()">🐱 Hear it again!</button>
+      <div class="display-box" id="missing-display">_ _</div>
+      <div class="feedback" id="missing-feedback"></div>
+      <div class="keypad" id="missing-keypad"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CELEBRATION -->
+<div id="celebration">
+  <div class="cel-emoji" id="cel-emoji">😸</div>
+  <div class="cel-text" id="cel-text">Purrfect!</div>
+  <div class="cel-sub">⭐ +1 star!</div>
+</div>
+
+<script>
+// ===================== SETUP =====================
+const CAT_EMOJIS = ['😸','🐱','😻','🙀','😺','🐾','🐈','🐈‍⬛'];
+const CEL_TEXTS = ['Purrfect!','Amazing!','You got it!','Meow-velous!','Super cat!','Brilliant!','Fantastic!','Paw-some!'];
+const CEL_EMOJIS = ['😸','🌟','⭐','🐾','✨','😻','🎉','🌈'];
+let stars = 0;
+let currentMode = null;
+let currentAnswer = null;
+let typedValue = '';
+let biggerMode = null; // 'bigger' or 'smaller'
+let biggerNums = [null, null];
+let nextAnswer = null;
+let missingAnswer = null;
+let missingData = null;
+
+// Band-based number selection
+const BANDS = [[10,25],[26,45],[46,65],[66,85],[86,100]];
+let bandQueues = BANDS.map(() => []);
+
+function getBandNumber() {
+  // find band with most remaining, pick from that
+  let counts = bandQueues.map(q => q.length);
+  let minCount = Math.min(...counts);
+  // refill empty bands
+  bandQueues = bandQueues.map((q, i) => {
+    if (q.length === 0) {
+      let [lo, hi] = BANDS[i];
+      let nums = [];
+      for (let n = lo; n <= hi; n++) nums.push(n);
+      return shuffle(nums);
+    }
+    return q;
+  });
+  // pick from a random band that still has items (evenly)
+  // rotate through bands to ensure even distribution
+  let bandIdx = bandQueues.reduce((best, q, i) => q.length > bandQueues[best].length ? i : best, 0);
+  return bandQueues[bandIdx].pop();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function getTwoDistinctNumbers() {
+  let a = getBandNumber();
+  let b;
+  do { b = getBandNumber(); } while (b === a);
+  return [a, b];
+}
+
+// ===================== STARS BG =====================
+function makeStars() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 3 + 1;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*5}s`;
+    container.appendChild(s);
+  }
+  const pawPositions = [10,30,50,70,90];
+  pawPositions.forEach((x, i) => {
+    const p = document.createElement('div');
+    p.className = 'paw-float';
+    p.textContent = '🐾';
+    p.style.cssText = `left:${x}%;--fd:${7+i*2}s;--fdelay:${i*1.5}s`;
+    container.appendChild(p);
+  });
+}
+
+// ===================== KEYPAD =====================
+function buildKeypad(containerId, displayId, feedbackId, onSubmit) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const keys = ['1','2','3','4','5','6','7','8','9','*','0','#'];
+  keys.forEach(k => {
+    const btn = document.createElement('button');
+    btn.className = 'key' + (k === '*' || k === '#' ? ' key-special' : '') + (k === '#' ? ' key-submit' : '');
+    btn.textContent = k === '*' ? '⌫' : k === '#' ? '✓' : k;
+    btn.addEventListener('click', () => {
+      btn.classList.add('pressed');
+      setTimeout(() => btn.classList.remove('pressed'), 150);
+      if (k === '*') {
+        typedValue = typedValue.slice(0, -1);
+      } else if (k === '#') {
+        onSubmit();
+        return;
+      } else {
+        if (typedValue.length < 3) typedValue += k;
+      }
+      const disp = document.getElementById(displayId);
+      disp.textContent = typedValue || '_ _';
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ===================== NAVIGATION =====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  const backWrap = document.getElementById('backBtnWrap');
+  if (id === 'home') {
+    backWrap.innerHTML = '';
+  } else {
+    backWrap.innerHTML = '<button class="back-btn" onclick="goHome()">←</button>';
+  }
+}
+
+function goHome() {
+  currentMode = null;
+  typedValue = '';
+  showScreen('home');
+}
+
+// ===================== SPEECH =====================
+function speak(text, onEnd) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 0.85;
+  utt.pitch = 1.1;
+  if (onEnd) utt.onend = onEnd;
+  speechSynthesis.speak(utt);
+}
+
+// ===================== CELEBRATION =====================
+function celebrate(onDone) {
+  stars++;
+  document.getElementById('starCount').textContent = stars;
+  const cel = document.getElementById('celebration');
+  document.getElementById('cel-emoji').textContent = CEL_EMOJIS[Math.floor(Math.random()*CEL_EMOJIS.length)];
+  document.getElementById('cel-text').textContent = CEL_TEXTS[Math.floor(Math.random()*CEL_TEXTS.length)];
+  cel.classList.add('show');
+  makeConfetti();
+  playChime();
+  setTimeout(() => {
+    cel.classList.remove('show');
+    clearConfetti();
+    if (onDone) onDone();
+  }, 1800);
+}
+
+function makeConfetti() {
+  const colors = ['#ff6eb4','#c084fc','#fbbf24','#6ee7b7','#f472b6','#a78bfa'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.cssText = `
+      left:${Math.random()*100}%; top:-10px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --cf-x:${(Math.random()-0.5)*300}px;
+      --cf-d:${1+Math.random()*1}s;
+      --cf-delay:${Math.random()*0.5}s;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+    `;
+    document.body.appendChild(c);
+  }
+}
+function clearConfetti() {
+  document.querySelectorAll('.confetti-piece').forEach(c => c.remove());
+}
+
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523, 659, 784, 1047];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i*0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.15 + 0.4);
+      osc.start(ctx.currentTime + i*0.15);
+      osc.stop(ctx.currentTime + i*0.15 + 0.4);
+    });
+  } catch(e) {}
+}
+
+function showFeedback(id, isGood) {
+  const el = document.getElementById(id);
+  const msgs = ['Try again! You\'ve got this! 💪','Almost! Give it another go! 🐾','Keep trying, cat wizard! 🐱','So close! One more try! ✨'];
+  el.textContent = isGood ? '' : msgs[Math.floor(Math.random()*msgs.length)];
+  el.className = 'feedback show ' + (isGood ? 'good' : 'bad');
+  setTimeout(() => el.className = 'feedback', 1800);
+}
+
+// ===================== MODE: HEAR IT =====================
+function startHear() {
+  typedValue = '';
+  currentAnswer = getBandNumber();
+  document.getElementById('hear-display').textContent = '_ _';
+  document.getElementById('hear-feedback').className = 'feedback';
+  buildKeypad('hear-keypad', 'hear-display', 'hear-feedback', submitHear);
+  setTimeout(() => speak(String(currentAnswer)), 300);
+}
+
+function speakCurrent() { speak(String(currentAnswer)); }
+
+function submitHear() {
+  if (!typedValue) return;
+  if (parseInt(typedValue) === currentAnswer) {
+    celebrate(() => { typedValue = ''; startHear(); });
+  } else {
+    showFeedback('hear-feedback', false);
+    const d = document.getElementById('hear-display');
+    d.classList.add('shake');
+    setTimeout(() => d.classList.remove('shake'), 400);
+    typedValue = '';
+    d.textContent = '_ _';
+  }
+}
+
+// ===================== MODE: FIND IT =====================
+function startFind() {
+  typedValue = '';
+  currentAnswer = getBandNumber();
+  document.getElementById('find-display').textContent = '_ _';
+  document.getElementById('find-feedback').className = 'feedback';
+  buildNumLine(currentAnswer);
+  buildKeypad('find-keypad', 'find-display', 'find-feedback', submitFind);
+}
+
+function buildNumLine(target) {
+  const container = document.getElementById('find-numline');
+  // keep track element
+  container.innerHTML = '<div class="numline-track"></div>';
+  for (let n = 10; n <= 100; n++) {
+    const item = document.createElement('div');
+    item.className = 'nl-item' + (n % 10 === 0 ? ' major' : '') + (n === target ? ' target' : '');
+    const dot = document.createElement('div'); dot.className = 'nl-dot';
+    const tick = document.createElement('div'); tick.className = 'nl-tick';
+    const label = document.createElement('div'); label.className = 'nl-label';
+    if (n === target) {
+      const cat = document.createElement('div'); cat.className = 'nl-cat'; cat.textContent = '🐱';
+      item.appendChild(cat);
+    }
+    if (n % 10 === 0) label.textContent = n;
+    item.appendChild(dot);
+    item.appendChild(tick);
+    item.appendChild(label);
+    container.appendChild(item);
+  }
+  // scroll to target
+  setTimeout(() => {
+    const targetEl = container.querySelectorAll('.nl-item')[target - 10];
+    if (targetEl) {
+      const wrap = container.parentElement;
+      wrap.scrollLeft = targetEl.offsetLeft - wrap.offsetWidth/2 + 11;
+    }
+  }, 100);
+}
+
+function submitFind() {
+  if (!typedValue) return;
+  if (parseInt(typedValue) === currentAnswer) {
+    celebrate(() => { typedValue = ''; startFind(); });
+  } else {
+    showFeedback('find-feedback', false);
+    const d = document.getElementById('find-display');
+    d.classList.add('shake');
+    setTimeout(() => d.classList.remove('shake'), 400);
+    typedValue = '';
+    d.textContent = '_ _';
+  }
+}
+
+// ===================== MODE: BIGGER/SMALLER =====================
+function startBigger() {
+  document.getElementById('bigger-feedback').className = 'feedback';
+  document.getElementById('choice-a').className = 'choice-btn';
+  document.getElementById('choice-b').className = 'choice-btn';
+  biggerMode = Math.random() > 0.5 ? 'bigger' : 'smaller';
+  biggerNums = getTwoDistinctNumbers();
+  document.getElementById('bigger-label').textContent = biggerMode === 'bigger' ? '🏆 Which is BIGGER?' : '🏆 Which is SMALLER?';
+  document.getElementById('choice-a-num').textContent = biggerNums[0];
+  document.getElementById('choice-b-num').textContent = biggerNums[1];
+  setTimeout(() => speakBiggerPrompt(), 300);
+}
+
+function speakBiggerPrompt() {
+  const word = biggerMode === 'bigger' ? 'bigger' : 'smaller';
+  speak(`Which number is ${word}? ${biggerNums[0]} or ${biggerNums[1]}?`);
+}
+
+function checkChoice(side) {
+  const val = side === 'a' ? biggerNums[0] : biggerNums[1];
+  const other = side === 'a' ? biggerNums[1] : biggerNums[0];
+  let correct = biggerMode === 'bigger' ? val > other : val < other;
+  const btnId = 'choice-' + side;
+  if (correct) {
+    document.getElementById(btnId).className = 'choice-btn correct';
+    celebrate(() => { startBigger(); });
+  } else {
+    document.getElementById(btnId).className = 'choice-btn wrong';
+    showFeedback('bigger-feedback', false);
+    setTimeout(() => { document.getElementById(btnId).className = 'choice-btn'; }, 600);
+  }
+}
+
+// ===================== MODE: WHAT COMES NEXT =====================
+function startNext() {
+  typedValue = '';
+  document.getElementById('next-display').textContent = '_ _';
+  document.getElementById('next-feedback').className = 'feedback';
+  // 30% chance of skip counting (tens), else consecutive
+  let seq;
+  if (Math.random() < 0.3) {
+    // tens skip counting
+    let start = [10,20,30,40,50,60,70,80][Math.floor(Math.random()*8)];
+    seq = [start, start+10, start+20];
+    nextAnswer = start + 30;
+    if (nextAnswer > 100) { start = 10; seq = [10,20,30]; nextAnswer = 40; }
+  } else {
+    let base = getBandNumber();
+    if (base > 97) base = 97;
+    seq = [base, base+1, base+2];
+    nextAnswer = base + 3;
+  }
+  const seqEl = document.getElementById('next-seq');
+  seqEl.innerHTML = '';
+  seq.forEach((n, i) => {
+    if (i > 0) { const arr = document.createElement('div'); arr.className = 'seq-arrow'; arr.textContent = '→'; seqEl.appendChild(arr); }
+    const el = document.createElement('div'); el.className = 'seq-num'; el.textContent = n; seqEl.appendChild(el);
+  });
+  const arr2 = document.createElement('div'); arr2.className = 'seq-arrow'; arr2.textContent = '→'; seqEl.appendChild(arr2);
+  const blank = document.createElement('div'); blank.className = 'seq-blank'; blank.textContent = '?'; seqEl.appendChild(blank);
+  buildKeypad('next-keypad', 'next-display', 'next-feedback', submitNext);
+  setTimeout(() => speakSequence(), 300);
+}
+
+function speakSequence() {
+  const nums = Array.from(document.querySelectorAll('#next-seq .seq-num')).map(el => el.textContent);
+  speak(nums.join('... ') + '... what comes next?');
+}
+
+function submitNext() {
+  if (!typedValue) return;
+  if (parseInt(typedValue) === nextAnswer) {
+    celebrate(() => { typedValue = ''; startNext(); });
+  } else {
+    showFeedback('next-feedback', false);
+    const d = document.getElementById('next-display');
+    d.classList.add('shake');
+    setTimeout(() => d.classList.remove('shake'), 400);
+    typedValue = '';
+    d.textContent = '_ _';
+  }
+}
+
+// ===================== MODE: MISSING NUMBER =====================
+function startMissing() {
+  typedValue = '';
+  document.getElementById('missing-display').textContent = '_ _';
+  document.getElementById('missing-feedback').className = 'feedback';
+  let base = getBandNumber();
+  if (base >= 100) base = 98;
+  if (base <= 10) base = 11;
+  // gap can be position 0, 1, or 2
+  const gap = Math.floor(Math.random() * 3);
+  const nums = [base - 1, base, base + 1];
+  missingAnswer = nums[gap];
+  missingData = { nums, gap };
+  const row = document.getElementById('missing-row');
+  row.innerHTML = '';
+  nums.forEach((n, i) => {
+    if (i > 0) {
+      const sep = document.createElement('div');
+      sep.textContent = '—';
+      sep.style.cssText = 'color:rgba(255,255,255,0.3);font-size:1.4rem;';
+      row.appendChild(sep);
+    }
+    if (i === gap) {
+      const blank = document.createElement('div'); blank.className = 'miss-blank'; blank.textContent = '?'; row.appendChild(blank);
+    } else {
+      const el = document.createElement('div'); el.className = 'miss-num'; el.textContent = n; row.appendChild(el);
+    }
+  });
+  buildKeypad('missing-keypad', 'missing-display', 'missing-feedback', submitMissing);
+  setTimeout(() => speakMissing(), 300);
+}
+
+function speakMissing() {
+  const { nums, gap } = missingData;
+  const said = nums.map((n, i) => i === gap ? 'blank' : n).join('... ');
+  speak('What is the missing number? ' + said);
+}
+
+function submitMissing() {
+  if (!typedValue) return;
+  if (parseInt(typedValue) === missingAnswer) {
+    celebrate(() => { typedValue = ''; startMissing(); });
+  } else {
+    showFeedback('missing-feedback', false);
+    const d = document.getElementById('missing-display');
+    d.classList.add('shake');
+    setTimeout(() => d.classList.remove('shake'), 400);
+    typedValue = '';
+    d.textContent = '_ _';
+  }
+}
+
+// ===================== START MODE =====================
+function startMode(mode) {
+  currentMode = mode;
+  typedValue = '';
+  showScreen(mode === 'bigger' ? 'bigger' : mode === 'next' ? 'next' : mode === 'missing' ? 'missing' : mode === 'find' ? 'find' : 'hear');
+  if (mode === 'hear') startHear();
+  else if (mode === 'find') startFind();
+  else if (mode === 'bigger') startBigger();
+  else if (mode === 'next') startNext();
+  else if (mode === 'missing') startMissing();
+}
+
+// ===================== INIT =====================
+makeStars();
+</script>
+</body>
+</html>
